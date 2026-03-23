@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0
 
 #    ----------------------------------------------------------------------
-#    Copyright © 2024, 2025  Pellegrino Prevete
+#    Copyright © 2024, 2025, 2026  Pellegrino Prevete
 #
 #    All rights reserved
 #    ----------------------------------------------------------------------
@@ -27,7 +27,7 @@
 #     <pellegrinoprevete@gmail.com>
 #     <dvorak@0x87003Bd6C074C713783df04f36517451fF34CBEf>
 
-_evmfs_available="$( \
+_evmfs_available="$(
   command \
     -v \
     "evmfs" || \
@@ -39,12 +39,38 @@ if [[ ! -v "_evmfs" ]]; then
     _evmfs="false"
   fi
 fi
-_os="$( \
+_os="$(
   uname \
     -o)"
 _offline="false"
-_git="false"
-_docs="true"
+if [[ ! -v "_git" ]]; then
+  _git="false"
+fi
+if [[ ! -v "_git_service" ]]; then
+  _git="github"
+fi
+if [[ ! -v "_tag_name" ]]; then
+  _tag_name="commit"
+fi
+if [[ ! -v "_docs" ]]; then
+  _docs="true"
+fi
+if [[ ! -v "_ns" ]]; then
+  _ns="themartiancompany"
+fi
+if [[ ! -v "_archive_format" ]]; then
+  if [[ "${_git}" == "true" ]]; then
+    _archive_format=".git"
+  elif [[ "${_git}" == "false" ]]; then
+    if [[ "${_git_service}" == "github" ]]; then
+      if [[ "${_tag_name}" == "pkgver" ]]; then
+        _archive_format="tar.gz"
+      elif [[ "${_tag_name}" == "commit" ]]; then
+        _archive_format="zip"
+      fi
+    fi
+  fi
+fi
 _py="python"
 pkgbase=gpg-signature-info
 pkgname=(
@@ -66,8 +92,7 @@ pkgdesc="${_pkgdesc[*]}"
 arch=(
   'any'
 )
-_http="https://github.com"
-_ns="themartiancompany"
+_http="https://${_git_service}.com"
 url="${_http}/${_ns}/${pkgname}"
 license=(
   'AGPL3'
@@ -94,58 +119,85 @@ if [[ "${_docs}" == "true" ]]; then
     "${_py}-docutils"
   )
 fi
+if [[ "${_git}" == "true" ]]; then
+  makedepends+=(
+    "git"
+  )
+fi
+if [[ "${_evmfs}" == "true" ]]; then
+  makedepends+=(
+    "evmfs"
+  )
+fi
 checkdepends=(
   "shellcheck"
 )
 source=()
 sha256sums=()
 _url="${url}"
-_tag="${_commit}"
-_tag_name="commit"
+if [[ "${_tag_name}" == "commit" ]]; then
+  _tag="${_commit}"
+elif [[ "${_tag_name}" == "pkgver" ]]; then
+  _tag="${pkgver}"
+fi
 _tarname="${pkgname}-${_tag}"
+_tarfile="${_tarname}.${_archive_format}"
 if [[ "${_offline}" == "true" ]]; then
   _url="file://${HOME}/${pkgname}"
 fi
+_github_sum='43e59b9cdb10d00f835a5ab8e9292a4032044c9ac9eff5e34e3088b651bec541'
+_github_sig_sum="2d50d974345f26e14fb17348c9fc314ce5f2d33437e3e6e9c8c8c4923226d463"
+_archive_sum="${_github_sum}"
+_archive_sig_sum="${_github_sig_sum}"
+_bundle_sum="SKIP"
+_bundle_sig_Sum="SKIP"
+_github_release_sum="d4f4179c6e4ce1702c5fe6af132669e8ec4d0378428f69518f2926b969663a91"
+_github_release_sig_sum="d4f4179c6e4ce1702c5fe6af132669e8ec4d0378428f69518f2926b969663a91"
+# Dvorak
+_evmfs_ns="0x87003Bd6C074C713783df04f36517451fF34CBEf"
 _evmfs_network="100"
 _evmfs_address="0x69470b18f8b8b5f92b48f6199dcb147b4be96571"
-_evmfs_ns="0x87003Bd6C074C713783df04f36517451fF34CBEf"
-_archive_sum='43e59b9cdb10d00f835a5ab8e9292a4032044c9ac9eff5e34e3088b651bec541'
-_evmfs_archive_uri="evmfs://${_evmfs_network}/${_evmfs_address}/${_evmfs_ns}/${_archive_sum}"
-_evmfs_archive_src="${_tarname}.zip::${_evmfs_archive_uri}"
-_archive_sig_sum="2d50d974345f26e14fb17348c9fc314ce5f2d33437e3e6e9c8c8c4923226d463"
-_archive_sig_uri="evmfs://${_evmfs_network}/${_evmfs_address}/${_evmfs_ns}/${_archive_sig_sum}"
-_archive_sig_src="${_tarname}.zip.sig::${_archive_sig_uri}"
+_evmfs_dir="evmfs://${_evmfs_network}/${_evmfs_address}/${_evmfs_ns}"
+_evmfs_archive_uri="${_evmfs_dir}/${_archive_sum}"
+_evmfs_archive_src="${_tarfile}::${_evmfs_archive_uri}"
+_archive_sig_uri="${_evmfs_dir}/${_archive_sig_sum}"
+_archive_sig_src="${_tarfile}.sig::${_archive_sig_uri}"
 if [[ "${_evmfs}" == "true" ]]; then
-  makedepends+=(
-    "evmfs"
-  )
-  _src="${_evmfs_archive_src}"
-  _sum="${_archive_sum}"
-  source+=(
-    "${_archive_sig_src}"
-  )
-  sha256sums+=(
-    "${_archive_sig_sum}"
-  )
+  if [[ "${_git}" == "false" ]]; then
+    _src="${_evmfs_archive_src}"
+    _sum="${_archive_sum}"
+    source+=(
+      "${_archive_sig_src}"
+    )
+    sha256sums+=(
+      "${_archive_sig_sum}"
+    )
+  elif [[ "${_git}" == "true" ]]; then
+    _msg=(
+     "Program repository"
+     "not published on Ethereum."
+    )
+    echo \
+      "${_msg[*]}"
+    return \
+      1
+  fi
 elif [[ "${_git}" == true ]]; then
-  makedepends+=(
-    "git"
-  )
   _src="${_tarname}::git+${_url}#${_tag_name}=${_tag}?signed"
   _sum="SKIP"
 elif [[ "${_git}" == false ]]; then
   if [[ "${_tag_name}" == 'pkgver' ]]; then
-    _src="${_tarname}.tar.gz::${_url}/archive/refs/tags/${_tag}.tar.gz"
-    _sum="d4f4179c6e4ce1702c5fe6af132669e8ec4d0378428f69518f2926b969663a91"
+    _src="${_tarfile}::${_url}/archive/refs/tags/${_tag}.${_archive_format}"
+    _sum="${_github_release_sum}"
   elif [[ "${_tag_name}" == "commit" ]]; then
-    _src="${_tarname}.zip::${_url}/archive/${_commit}.zip"
+    _src="${_tarfile}::${_url}/archive/${_commit}.${_archive_format}"
     _sum="${_archive_sum}"
   fi
 fi
-source=(
+source+=(
   "${_src}"
 )
-sha256sums=(
+sha256sums+=(
   "${_sum}"
 )
 validpgpkeys=(
@@ -166,11 +218,16 @@ check() {
 }
 
 package_gpg-signature-info() {
+  local \
+    _make_opts=()
+  _make_opts+=(
+    PREFIX="/usr"
+    DESTDIR="${pkgdir}"
+  )
   cd \
     "${_tarname}"
   make \
-    PREFIX="/usr" \
-    DESTDIR="${pkgdir}" \
+    "${_make_opts[@]}" \
     install-scripts
   install \
     -Dm644 \
@@ -180,15 +237,19 @@ package_gpg-signature-info() {
 }
 
 package_gpg-signature-info-docs() {
+  local \
+    _make_opts=()
+  _make_opts+=(
+    PREFIX="/usr"
+    DESTDIR="${pkgdir}"
+  )
   cd \
     "${_tarname}"
   make \
-    PREFIX="/usr" \
-    DESTDIR="${pkgdir}" \
+    "${_make_opts[@]}" \
     install-doc
   make \
-    PREFIX="/usr" \
-    DESTDIR="${pkgdir}" \
+    "${_make_opts[@]}" \
     install-man
   install \
     -Dm644 \
