@@ -962,9 +962,9 @@ jobs:
             ${{ github.event.release.upload_url }}
             # ${{ steps.create_release.outputs.upload_url }}
           asset_path:
-            "gpg-key-info-${{ steps.version.outputs.version }}-any.pkg.tar.xz"
+            "gpg-signature-info-${{ steps.version.outputs.version }}-any.pkg.tar.xz"
           asset_name:
-            "dogeos-android-gpg-key-info-${{ steps.version.outputs.version }}-any.pkg.tar.xz"
+            "dogeos-android-gpg-signature-info-${{ steps.version.outputs.version }}-any.pkg.tar.xz"
           asset_content_type:
             application/gzip
   arch_release:
@@ -1676,9 +1676,9 @@ jobs:
             ${{ github.event.release.upload_url }}
             # ${{ steps.create_release.outputs.upload_url }}
           asset_path:
-            "gpg-key-info-${{ steps.version.outputs.version }}-any.pkg.tar.xz"
+            "gpg-signature-info-${{ steps.version.outputs.version }}-any.pkg.tar.xz"
           asset_name:
-            "dogeos-gnu-gpg-key-info-${{ steps.version.outputs.version }}-any.pkg.tar.xz"
+            "dogeos-gnu-gpg-signature-info-${{ steps.version.outputs.version }}-any.pkg.tar.xz"
           asset_content_type:
             application/gzip
   msys2_release:
@@ -2127,9 +2127,9 @@ jobs:
             ${{ github.event.release.upload_url }}
             # ${{ steps.create_release.outputs.upload_url }}
           asset_path:
-            "gpg-key-info-${{ steps.version.outputs.version }}-any.pkg.tar.xz"
+            "gpg-signature-info-${{ steps.version.outputs.version }}-any.pkg.tar.xz"
           asset_name:
-            "dogeos-windows-gpg-key-info-${{ steps.version.outputs.version }}-any.pkg.tar.xz"
+            "dogeos-windows-gpg-signature-info-${{ steps.version.outputs.version }}-any.pkg.tar.xz"
           asset_content_type:
             application/gzip
 
