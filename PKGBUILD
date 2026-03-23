@@ -47,7 +47,7 @@ if [[ ! -v "_git" ]]; then
   _git="false"
 fi
 if [[ ! -v "_git_service" ]]; then
-  _git="github"
+  _git_service="github"
 fi
 if [[ ! -v "_tag_name" ]]; then
   _tag_name="commit"
